@@ -1,12 +1,39 @@
-Library/
-Logs/
-Temp/
-Debug/
-UserSettings/
+/[Ll]ibrary/
+/[Tt]emp/
+/[Oo]bj/
+/[Bb]uilds/
+/[Ll]ogs/
+/[Mm]emory[Cc]aptures/
+/[Uu]ser[Ss]ettings/
 
-*.sln
+!/[Aa]ssets/**/*.meta
+# /[Aa]ssets/AssetStoreTools*
+/[Aa]ssets/Plugins/Editor/JetBrains*
+.vs/
+.gradle/
+
+ExportedObj/
+.consulo/
 *.csproj
-*.idea
+*.unityproj
+*.sln
+*.suo
+*.tmp
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
 
+*.pidb.meta
+*.pdb.meta
+*.mdb.meta
 
+sysinfo.txt
 
+*.apk
+*.unitypackage

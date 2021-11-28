@@ -19,13 +19,13 @@ TagManager:
   - 
   - 
   - 
+  - RemoteCharacter
+  - Character
+  - Enemy
   - 
   - 
   - 
-  - 
-  - 
-  - 
-  - 
+  - Bullet
   - 
   - 
   - 
