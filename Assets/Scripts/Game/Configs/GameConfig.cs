@@ -10,10 +10,12 @@ namespace Game.Configs
         public float BulletLifeTime;
         public float PlayerHelth;
         public float FirePeriod;
+        public float PowerupHeal;
         
         [Header("Prefabs")]
         public ResourceLink PlayerPrefab;
         public ResourceLink BulletPrefab;
+        public ResourceLink PowerupPrefab;
 
         [Header("Player View")]
         public LayerMaskAsInt CurrentPlayerLayer;

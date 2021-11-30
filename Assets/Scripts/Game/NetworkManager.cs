@@ -11,18 +11,17 @@ namespace Game
         public event Action ConnectedEvent;
         public event Action ModelChangedEvent;
 
-        [SerializeField]private SharedModel _sharedModel;
+        [SerializeField] private SharedModel _sharedModel;
 
         public int FiremanId => _sharedModel.FiremanID;
+        public int ChangedPlayerID => _sharedModel.ChangedPlayerID;
+        public Change PlayerChange => _sharedModel.PlayerChange;
         public GameState GameState => _sharedModel.GameState;
         public bool IsMaster => PhotonNetwork.LocalPlayer.IsMasterClient;
-        
+
         public void Start()
         {
-            _sharedModel.ChangedEvent += () =>
-            {
-                ModelChangedEvent?.Invoke();
-            };
+            _sharedModel.ChangedEvent += () => { ModelChangedEvent?.Invoke(); };
         }
 
         public void Connect()
@@ -46,10 +45,10 @@ namespace Game
         {
             var player = PhotonNetwork.Instantiate(prefabName, position, rotation);
             var playerController = player.GetComponent<PlayerController>();
-            
+
             return playerController;
         }
-        
+
         public void SetFireman(int id)
         {
             photonView.RPC(nameof(SetFiremanRpc), RpcTarget.MasterClient, id);
@@ -61,22 +60,33 @@ namespace Game
             _sharedModel.SetFireman(id);
         }
 
+        public void ChangePlayer(int id,Change change)
+        {
+            photonView.RPC(nameof(ChangePlayerRpc), RpcTarget.All, id, change);
+        }
+
+        [PunRPC]
+        private void ChangePlayerRpc(int id,Change change)
+        {
+            _sharedModel.ChangePlayer(id,change);
+        }
+
         public void StartGame()
         {
             photonView.RPC(nameof(ChangeState), RpcTarget.MasterClient, GameState.Play);
         }
-        
+
         public void EndGame()
         {
             photonView.RPC(nameof(ChangeState), RpcTarget.MasterClient, GameState.End);
         }
-        
+
         [PunRPC]
         private void ChangeState(GameState state)
         {
             _sharedModel.SetState(state);
         }
-        
+
         public override void OnConnectedToMaster()
         {
             Debug.Log("OnConnectedToMaster");

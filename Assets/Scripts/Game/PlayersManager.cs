@@ -24,10 +24,11 @@ namespace Game
         public bool IsFireman => _playerController != null && _playerController.Id == _networkManager.FiremanId;
 
         public PlayersManager(
-            NetworkManager networkManager, 
+            NetworkManager networkManager,
             BulletManager bulletManager,
-            NetworkEvents networkEvents, 
-            GameConfig config, 
+            PowerupManager powerupManager,
+            NetworkEvents networkEvents,
+            GameConfig config,
             GameplayView gameplayView)
         {
             _networkManager = networkManager;
@@ -49,15 +50,16 @@ namespace Game
             _networkEvents.PlayerControllerCreatedEvent -= AddPlayer;
             _bulletManager.OnTargetReachedEvent -= OnTargetReached;
         }
-        
+
         public void CreateLocalPlayer()
         {
             var points = _gameplayView.SpawnPoints;
             var spawnPoint = points[Random.Range(0, points.Length)];
-            
-            _playerController = _networkManager.CreatePlayer(_config.PlayerPrefab.Path, spawnPoint.position, spawnPoint.rotation);
+
+            _playerController =
+                _networkManager.CreatePlayer(_config.PlayerPrefab.Path, spawnPoint.position, spawnPoint.rotation);
             _playerController.ShootEvent += OnShoot;
-            
+
             _gameplayView.SetLocalPlayer(_playerController);
             _gameplayView.AddPlayer(_playerController);
             _playerController.HitpointsView.SetValue(1);
@@ -69,10 +71,19 @@ namespace Game
             _networkManager.SetFireman(_players[idx].Id);
         }
 
+        private void Heal(float hp)
+        {
+            _health += hp;
+            if (_health > _config.PlayerHelth)
+            {
+                _health = _config.PlayerHelth;
+            }
+        }
+
         public void Tick(float deltaTime)
         {
             _fireTimer -= Time.deltaTime;
-            
+
             if (!IsFireman || _health <= 0)
                 return;
 
@@ -84,16 +95,16 @@ namespace Game
                 _networkManager.EndGame();
             }
         }
-        
+
         private void OnShoot(Vector3 point, Quaternion rotation)
         {
             if (_fireTimer > 0 || !IsFireman || _health <= 0 || _networkManager.GameState != GameState.Play)
                 return;
-            
+
             _bulletManager.CreateBullet(point, rotation);
             _fireTimer = _config.FirePeriod;
         }
-        
+
         private void OnTargetReached(IBulletTarget target)
         {
             if (target is ZombieComponent zombie)
@@ -105,8 +116,26 @@ namespace Game
                 _networkManager.SetFireman(player.Id);
             }
         }
-        
+
+
         private void OnModelChanged()
+        {
+            ChangeFireman();
+            switch (_networkManager.PlayerChange)
+            {
+                case Change.DEFAULT:
+                    break;
+                case Change.HEALTH:
+                    HealPlayer();
+                    break;
+                case Change.SCALE:
+                    ShrinkPlayer();
+                    break;
+
+            }
+        }
+
+        private void ChangeFireman()
         {
             var id = _networkManager.FiremanId;
             foreach (var player in _players)
@@ -114,12 +143,33 @@ namespace Game
                 player.IsFireman = player.Id == id;
             }
         }
+
+        private void HealPlayer()
+        {
+            var id = _networkManager.ChangedPlayerID;
+
+            if (_playerController.Id == id)
+            {
+                Heal(_config.PowerupHeal);
+            }
+        }
+        private void ShrinkPlayer()
+        {
+            var id = _networkManager.ChangedPlayerID;
+
+            if (_playerController.Id == id)
+            {
+                var tr = _playerController.transform.localScale;
+                _playerController.transform.localScale = tr - new Vector3(0.1f, 0.1f, 0.1f);
+            }
+        }
         
+
         private void AddPlayer(PlayerController player)
         {
             if (_players.Contains(player))
                 return;
-            
+
             _players.Add(player);
             _gameplayView.AddPlayer(player);
             player.IsFireman = player.Id == _networkManager.FiremanId;

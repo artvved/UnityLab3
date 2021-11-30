@@ -10,11 +10,20 @@ namespace Game
         private bool _hasChanges;
 
         public int FiremanID { get; private set; }
+        public int ChangedPlayerID { get; private set; }
+        public Change PlayerChange { get; private set; } = Change.DEFAULT;
         public GameState GameState { get; private set; } = GameState.Wait;
 
         public void SetFireman(int id)
         {
             FiremanID = id;
+            _hasChanges = true;
+        }
+
+        public void ChangePlayer(int id,Change change)
+        {
+            PlayerChange = change;
+            ChangedPlayerID = id;
             _hasChanges = true;
         }
 
@@ -30,6 +39,7 @@ namespace Game
             {
                 _hasChanges = false;
                 ChangedEvent?.Invoke();
+                PlayerChange = Change.DEFAULT;
             }
         }
 
@@ -49,7 +59,7 @@ namespace Game
                     FiremanID = newId;
                 }
 
-                var newState = (GameState)stream.ReceiveNext();
+                var newState = (GameState) stream.ReceiveNext();
                 if (newState != GameState)
                 {
                     _hasChanges = true;

@@ -7,10 +7,11 @@ namespace View.Components
     {
         [SerializeField] private Rigidbody _rigidbody;
         [SerializeField] private PhotonView _photonView;
-        
+
         private bool _firstData = true;
         private Vector3 _correctPosition = Vector3.zero;
         private Quaternion _correctRotation = Quaternion.identity;
+        private Vector3 _correctScale = Vector3.one;
         private Vector3 _correctVelocity = Vector3.zero;
 
 
@@ -18,9 +19,10 @@ namespace View.Components
         {
             if (_photonView.IsMine)
                 return;
-            
+
             transform.position = Vector3.Lerp(transform.position, _correctPosition, Time.deltaTime * 5f);
             transform.rotation = Quaternion.Lerp(transform.rotation, _correctRotation, Time.deltaTime * 5f);
+            transform.localScale = Vector3.Lerp(transform.localScale, _correctScale, Time.deltaTime * 5f);
             _rigidbody.velocity = Vector3.Lerp(_rigidbody.velocity, _correctVelocity, Time.deltaTime * 5f);
         }
 
@@ -30,18 +32,21 @@ namespace View.Components
             {
                 stream.SendNext(transform.position);
                 stream.SendNext(transform.rotation);
+                stream.SendNext(transform.localScale);
                 stream.SendNext(_rigidbody.velocity);
             }
             else
             {
-                _correctPosition = (Vector3)stream.ReceiveNext();
-                _correctRotation = (Quaternion)stream.ReceiveNext();
-                _correctVelocity = (Vector3)stream.ReceiveNext() * 0.5f;
+                _correctPosition = (Vector3) stream.ReceiveNext();
+                _correctRotation = (Quaternion) stream.ReceiveNext();
+                _correctScale = (Vector3) stream.ReceiveNext();
+                _correctVelocity = (Vector3) stream.ReceiveNext() * 0.5f;
 
                 if (_firstData)
                 {
                     transform.position = _correctPosition;
                     transform.rotation = _correctRotation;
+                    transform.localScale = _correctScale;
                     _rigidbody.velocity = _correctVelocity;
                     _firstData = false;
                 }
